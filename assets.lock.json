@@ -1,0 +1,10 @@
+{
+  "sdk": {
+    "file": "sherpa-onnx-1.13.8.aar",
+    "sha256": "633c24321e06b1fe79feafa03ea16cbc0f8a286641e2da3559bac91bdb13bd96"
+  },
+  "model": {
+    "file": "sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01-mobile.tar.bz2",
+    "sha256": "b812a043aef628a6915f89cb9a94e55f8e87e89ff904b516f822d7e0a3e6de2b"
+  }
+}

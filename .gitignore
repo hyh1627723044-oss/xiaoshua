@@ -1,0 +1,11 @@
+.gradle/
+.kotlin/
+.idea/
+*.iml
+**/build/
+local.properties
+app/libs/*.aar
+app/src/main/assets/kws/*.onnx
+app/src/main/assets/kws/tokens.txt
+downloads/
+*.apk
