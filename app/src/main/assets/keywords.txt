@@ -1,0 +1,8 @@
+x ià y ī t iáo @NEXT
+sh àng y ī t iáo @PREVIOUS
+b ō f àng @PLAY
+z àn t íng @PAUSE
+d iǎn z àn d iǎn z àn @LIKE
+ch á k àn p íng l ùn @COMMENTS
+g uān b ì p íng l ùn @CLOSE_COMMENTS
+t íng zh ǐ k òng zh ì @STOP
