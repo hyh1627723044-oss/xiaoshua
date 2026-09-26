@@ -28,7 +28,8 @@ class GestureService : AccessibilityService() {
         stopService(Intent(this, ListeningService::class.java))
     }
 
-    fun execute(command: Command, detectedAt: Long) {
+    fun execute(request: CommandRequest) {
+        val command = request.command
         if (!AppState.listening) return
         if (command == Command.STOP) { stopListening(); return }
         if (!getSystemService(PowerManager::class.java).isInteractive ||
@@ -48,7 +49,7 @@ class GestureService : AccessibilityService() {
         val w = metrics.widthPixels.toFloat()
         val h = metrics.heightPixels.toFloat()
         if (w >= h || w <= 0f) { AppState.lastAction = "请使用竖屏"; return }
-        if (!gate.accept(command, detectedAt, SystemClock.elapsedRealtime(), AppState.listening, busy)) return
+        if (!gate.accept(request, SystemClock.elapsedRealtime(), AppState.listening, busy)) return
 
         val builder = GestureDescription.Builder()
         fun tap(x: Float, y: Float, start: Long = 0) {
