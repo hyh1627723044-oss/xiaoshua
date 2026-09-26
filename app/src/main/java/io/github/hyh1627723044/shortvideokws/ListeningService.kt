@@ -61,7 +61,7 @@ class ListeningService : Service() {
                         if (generation == current && AppState.listening) {
                             val command = Command.fromKeyword(keyword)
                             if (command == Command.STOP) { AppState.listening = false; stopSelf() }
-                            else if (command != null) GestureService.instance?.execute(command, time)
+                            else if (command != null) GestureService.instance?.execute(CommandRequest.local(command, time))
                         }
                     }
                 })

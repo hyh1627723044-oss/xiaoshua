@@ -9,12 +9,33 @@ enum class Command(val phrase: String) {
     }
 }
 
+enum class CommandSource { LOCAL_KEYWORD, CLOUD }
+
+// Times are SystemClock.elapsedRealtime() values. Cloud requests are timed from the end of the utterance.
+data class CommandRequest(
+    val command: Command,
+    val source: CommandSource,
+    val utteranceId: Long,
+    val capturedAt: Long,
+    val expiresAt: Long,
+) {
+    companion object {
+        const val LOCAL_FRESH_MS = 700L
+        const val CLOUD_FRESH_MS = 5000L
+        fun local(command: Command, detectedAt: Long) =
+            CommandRequest(command, CommandSource.LOCAL_KEYWORD, 0, detectedAt, detectedAt + LOCAL_FRESH_MS)
+        fun cloud(command: Command, utteranceId: Long, endedAt: Long) =
+            CommandRequest(command, CommandSource.CLOUD, utteranceId, endedAt, endedAt + CLOUD_FRESH_MS)
+    }
+}
+
 // Called only on the main thread. Expired callbacks and duplicate detections never queue gestures.
 class CommandGate {
     private var lastAt = Long.MIN_VALUE
     private var lastCommand: Command? = null
-    fun accept(command: Command, detectedAt: Long, now: Long, active: Boolean, busy: Boolean): Boolean {
-        if (!active || busy || now < detectedAt || now - detectedAt > 700) return false
+    fun accept(request: CommandRequest, now: Long, active: Boolean, busy: Boolean): Boolean {
+        if (!active || busy || now < request.capturedAt || now > request.expiresAt) return false
+        val command = request.command
         if (lastAt != Long.MIN_VALUE && (now - lastAt < 250 || (lastCommand == command && now - lastAt < 900))) return false
         lastAt = now
         lastCommand = command
