@@ -1,0 +1,24 @@
+name: Android keyword controller
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - run: python3 scripts/prepare_assets.py
+      - run: bash gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: short-video-kws-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
