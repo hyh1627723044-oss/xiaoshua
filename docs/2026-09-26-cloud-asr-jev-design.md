@@ -1,7 +1,7 @@
 # 小刷可选云端 ASR 与 JEV 行为判断设计
 
 日期：2026-09-26  
-状态：待用户审阅
+状态：已确认并实现（0.2.0）。2026-09-26 已按官方文档修正 5.4、5.6、9.2 和 9.3 节，并补充了云端模式下的离线停止口令（5.7）。
 
 ## 1. 背景
 
@@ -125,8 +125,18 @@ AudioCapture ─ PCM ──────┤                                      
 
 - 接收完整的短 PCM 语句，在内存中封装为 16 kHz、单声道、16-bit WAV。
 - 使用字节火山引擎短音频非流式 HTTP 接口，一次请求提交完整语句；第一版只支持能够直接接收音频正文的端点，不支持要求先把音频上传到公网 URL 的接口。
-- 默认服务端点为 `https://openspeech.bytedance.com/api/v3/auc/bigmodel`。
-- 使用新版控制台 API Key 鉴权，并发送用户配置的 Resource ID。
+- 默认服务端点为录音文件识别极速版 `https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash`，一次请求就返回结果。
+  - 原先写的 `/api/v3/auc/bigmodel` 是标准版的“提交 + 轮询”接口，只接受 `audio.url`，所以不采用。
+- 鉴权支持两种方式：
+  - 新版控制台：`X-Api-Key`。
+  - 旧版控制台：`X-Api-App-Key` 加 `X-Api-Access-Key`。
+- 另外发送 `X-Api-Resource-Id`（默认 `volc.bigasr.auc_turbo`，可配置）、`X-Api-Request-Id`（UUID）和 `X-Api-Sequence: -1`。
+- 请求体：`{user:{uid}, audio:{data:<WAV 的 base64>, format:"wav"}, request:{model_name:"bigmodel", enable_punc, enable_itn}}`。
+- 状态从响应头 `X-Api-Status-Code` 读取：
+  - `20000000` 表示成功，文本在 `result.text`。
+  - `20000003`（静音）和 `45000002`（空音频）按“没说话”处理。
+  - 其他状态码显示简短的错误原因。
+- 最新版文档没有列出 `audio.data`，旧版文档写明支持，需要用“试录并测试”在真机上确认。
 - 只接受最终转写文本，不处理部分结果。
 - 服务 URL 是完整端点 URL，可以替换为兼容中转站地址。
 - 第一版使用 OkHttp 完成 HTTPS、请求封装、超时和取消；字节官方协议由独立适配器封装，中转站需要兼容该请求和响应格式；JSON 使用 Android `org.json`。
@@ -142,9 +152,15 @@ AudioCapture ─ PCM ──────┤                                      
 
 - 默认端点为 `https://jevtypesafeai.com/api/v1/decide`。
 - 服务 URL 是完整端点 URL，可以替换为兼容中转站地址。
-- 默认模型为 `jev-latest`，模型名称可在高级设置中修改。
-- 请求只包含最终转写文本、固定行为说明和 `NO_ACTION`，不包含音频、屏幕节点或设备标识。
-- 使用 `choice` 返回的行为、`confidence` 与各行为概率。
+- 默认模型固定为 `jev-1.13.0`，可以在 JEV 设置中修改。
+  - JEV 官方建议在生产环境固定版本，因为 `jev-latest` 升级后置信度分布可能变化，使阈值失效。
+- 鉴权头为 `Authorization: Bearer <key>`。
+- 请求体：`{model, state:<转写文本>, questions:{intent:{type:"choice", instructions, criteria:{行为:描述}}}}`。
+  - `criteria` 只包含固定行为和 `NO_ACTION`。
+  - 请求中不包含音频、屏幕节点或设备标识。
+- 结果在 `answers.intent` 中，包含 `choice`、`confidence` 和 `probabilities`。
+- 第一名与第二名的概率差不足 `0.10` 时视为并列。
+- `choice` 必须是概率最高的那一项，否则视为结果不一致。
 - 全局默认接受阈值为 `0.80`；`LIKE` 的接受阈值为 `0.90`。
 - 返回未知行为、字段缺失、非有限数值、低置信度或并列不明确时统一返回 `NO_ACTION`。
 
@@ -156,6 +172,7 @@ AudioCapture ─ PCM ──────┤                                      
 - 停止监听、模式切换、锁屏、服务重建或出现更新的会话代次后，旧回调全部丢弃。
 - 云端识别采用 single-flight：同一时间最多处理一个完整语句，不排队执行过期命令。
 - 动作提交前仍由 `GestureService` 检查抖音包名、屏幕状态、竖屏状态和忙碌状态。
+- 云端模式下，同一路 PCM 还会送入一个只含“停止控制”的本地 KWS（`keywords-stop.txt`）。这样语音停止不依赖 ASR 和网络。
 
 ## 6. Silero VAD 算法
 
@@ -280,8 +297,9 @@ Keystore 只能降低静态提取和普通备份风险，不能保证 Root、运
 
 ### 9.2 字节 ASR 设置
 
-- 服务 URL，默认 `https://openspeech.bytedance.com/api/v3/auc/bigmodel`。
-- API Key。
+- 服务 URL，默认 `https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash`。
+- 鉴权方式切换：新版控制台 API Key / 旧版控制台 AppID + Access Token。
+- 按鉴权方式显示 API Key，或 AppID + Access Token。
 - Resource ID。
 - “保存”按钮。
 - “试录并测试”按钮：明确提示将录制并上传一段最多 3 秒的测试语音。
@@ -291,7 +309,7 @@ Keystore 只能降低静态提取和普通备份风险，不能保证 Root、运
 
 - 服务 URL，默认 `https://jevtypesafeai.com/api/v1/decide`。
 - API Key。
-- 模型名称，默认 `jev-latest`。
+- 模型名称，默认 `jev-1.13.0`。
 - “保存”按钮。
 - “测试连接”按钮：只发送内置示例文本，不发送用户语音或屏幕内容。
 - “清除凭证”和“恢复默认 URL”。
