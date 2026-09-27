@@ -15,7 +15,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".CloudSettingsActivity" android:exported="false" />
         <service android:name=".ListeningService" android:exported="false" android:foregroundServiceType="microphone" />
         <service android:name=".GestureService" android:exported="true"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" android:label="小刷手势控制">
