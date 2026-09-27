@@ -1,6 +1,24 @@
-# Verification: 0.2.0（2026-09-27）
+# Verification
 
 本地构建环境：Windows，Microsoft OpenJDK 17，Gradle 8.11.1，Android SDK 35，Build Tools 35.0.0。
+
+## 0.3.0（2026-09-27）：Jetpack Compose 界面
+
+- 按设计图用 Jetpack Compose 重写界面：
+  - 底部有“控制”和“设置”两个标签。
+  - 二级页面包括字节 ASR、JEV、高级设置、使用说明，外加评论位置、云端提示和清除确认等弹窗。
+  - 所有页面共用 `ui/Theme.kt` 和 `ui/Components.kt`，保证风格一致。
+- 旧的 `CloudSettingsActivity` 已删除，功能并入新界面。识别、网络和凭证逻辑没有改动。
+- `:app:assembleDebug`：构建成功，产物为 `dist/short-video-kws-0.3.0-debug.apk`，大小约 112 MB。
+  - 比 0.2.0 大了约 15 MB，主要来自 `material-icons-extended`。调试版没有开启 R8，正式版开启后可以去掉大部分。
+- 按用户要求，没有运行单元测试和 lint。
+- 需要真机确认：
+  - 各页面在不同屏幕尺寸下的排版，以及系统栏的避让。
+  - 麦克风光晕动画是否正常。
+  - 权限请求流程。
+  - 监听中各项设置是否被锁定。
+
+## 0.2.0（2026-09-27）
 
 ## 已完成
 
