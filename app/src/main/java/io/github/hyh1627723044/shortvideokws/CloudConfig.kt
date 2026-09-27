@@ -46,7 +46,8 @@ data class JevThresholds(
     val accept: Double = DEFAULT_ACCEPT,
     val like: Double = DEFAULT_LIKE,
 ) {
-    fun forLabel(label: String) = if (label == Command.LIKE.name) like else accept
+    // Like and favorite are visible, harder-to-undo actions, so they share the stricter threshold.
+    fun forLabel(label: String) = if (label == Command.LIKE.name || label == Command.FAVORITE.name) like else accept
 
     companion object {
         const val DEFAULT_ACCEPT = 0.80

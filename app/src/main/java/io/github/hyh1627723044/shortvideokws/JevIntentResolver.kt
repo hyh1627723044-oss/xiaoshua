@@ -29,6 +29,7 @@ class JevIntentResolver(base: OkHttpClient = OkHttpClient(), connectMs: Long = 3
             Command.LIKE.name to "给当前视频点赞",
             Command.COMMENTS.name to "打开当前视频的评论区",
             Command.CLOSE_COMMENTS.name to "关闭已经打开的评论区",
+            Command.FAVORITE.name to "收藏当前视频（取消收藏不属于此项）",
             Command.STOP.name to "停止语音控制",
             NO_ACTION to "不执行任何操作：否定句、多个操作、闲聊、像视频里的对白、与操作无关或意图不明确",
         )

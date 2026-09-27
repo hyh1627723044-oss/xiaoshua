@@ -27,7 +27,7 @@ import io.github.hyh1627723044.shortvideokws.*
 import kotlinx.coroutines.delay
 
 enum class Tab { CONTROL, SETTINGS }
-enum class Page { HOME, ASR, JEV, ADVANCED, HELP }
+enum class Page { HOME, ASR, JEV, ADVANCED, CALIBRATION, HELP }
 
 @Composable
 fun XiaoshuaApp() {
@@ -37,7 +37,6 @@ fun XiaoshuaApp() {
     var service by remember { mutableStateOf(ServiceSnapshot.read()) }
     var settings by remember { mutableStateOf(SettingsSnapshot.read(context)) }
     var cloudNotice by remember { mutableStateOf(false) }
-    var commentDialog by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         while (true) { service = ServiceSnapshot.read(); delay(300) }
     }
@@ -60,6 +59,7 @@ fun XiaoshuaApp() {
         Page.ASR -> PageScaffold { AsrScreen(service.busy, ::back) }
         Page.JEV -> PageScaffold { JevScreen(service.busy, ::back) }
         Page.ADVANCED -> PageScaffold { AdvancedScreen(service.busy, ::back) }
+        Page.CALIBRATION -> PageScaffold { CalibrationScreen(service, settings, ::back, ::refresh) }
         Page.HELP -> PageScaffold { HelpScreen(::back) }
         Page.HOME -> Scaffold(
             containerColor = Palette.Background,
@@ -82,7 +82,6 @@ fun XiaoshuaApp() {
                         },
                         onIntent = { CloudSettings.setIntentMode(context, it); refresh() },
                         onOpen = { page = it },
-                        onCommentPosition = { commentDialog = true },
                     )
                 }
             }
@@ -104,13 +103,6 @@ fun XiaoshuaApp() {
                 refresh()
             },
             onDismiss = { cloudNotice = false },
-        )
-    }
-    if (commentDialog) {
-        CommentPositionDialog(
-            settings.commentY,
-            onSave = { AppState.prefs(context).edit().putInt("comment_y", it).apply(); commentDialog = false; refresh() },
-            onDismiss = { commentDialog = false },
         )
     }
 }

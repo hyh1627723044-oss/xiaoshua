@@ -9,6 +9,9 @@ object AppState {
     @Volatile var lastAction = "还没有收到口令"
     // Latest cloud utterance outcome. Memory only; may contain the transcript.
     @Volatile var lastHeard = ""
+    @Volatile var calibrating = false
+    @Volatile var calibration = ""
+    @Volatile var calibrationOk = false
     fun prefs(context: Context) = context.getSharedPreferences("control", Context.MODE_PRIVATE)
     fun requirePrefix(context: Context) = prefs(context).getBoolean("prefix", false)
 }
