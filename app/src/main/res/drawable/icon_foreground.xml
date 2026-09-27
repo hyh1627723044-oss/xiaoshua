@@ -1,19 +1,28 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <!-- Keep the illustrated cards and paw inside the adaptive icon safe area. -->
-    <group android:scaleX="0.073" android:scaleY="0.073"
-        android:translateX="6.6" android:translateY="8.1">
+    <!-- Vector rendition of docs/design/cat-paw-icon-reference.png (approved v3).
+         Flat fills avoid raster artifacts; artwork stays inside the adaptive safe area. -->
+    <group android:scaleX="0.069" android:scaleY="0.069"
+        android:translateX="8.8" android:translateY="10.2">
         <!-- Rear video card. -->
         <path android:fillColor="#193F34"
-            android:pathData="M515,339 L516,309 C519,265 546,234 589,239 L877,271 C920,276 946,304 942,348 L927,711 C925,756 893,785 852,783 L857,474 C859,415 829,379 773,373 Z" />
+            android:pathData="M505,322 L507,281 C510,234 545,202 590,208 L919,246 C965,251 992,279 989,327 L974,738 C972,785 939,816 890,814 L888,464 C890,405 857,373 803,368 Z" />
         <!-- Front video card. -->
         <path android:fillColor="#193F34"
-            android:pathData="M449,356 L750,389 C806,395 837,425 835,480 L829,932 C829,986 800,1018 746,1018 L440,1018 C388,1018 357,987 357,934 L357,448 C357,393 392,350 449,356 Z" />
+            android:pathData="M418,336 L776,377 C831,383 866,414 866,470 L864,968 C864,1027 832,1060 776,1060 L418,1060 C360,1060 322,1027 322,969 L322,437 C322,377 359,330 418,336 Z" />
         <!-- Ivory foreleg and rounded paw, clipped naturally by the card edge. -->
         <path android:fillColor="#F7F6F0"
-            android:pathData="M359,951 C417,902 457,846 483,782 C500,741 500,716 487,689 C474,665 476,642 491,624 C503,609 518,600 533,606 C540,575 558,554 582,554 C603,553 619,566 630,586 C648,570 669,566 688,578 C708,590 717,614 708,639 C727,648 734,665 730,683 C725,708 704,727 687,744 C659,773 645,811 630,853 C613,905 593,963 572,1018 L440,1018 C400,1018 370,995 359,951 Z" />
-        <!-- Three toe pads and a simple central pad remain clear at launcher size. -->
+            android:pathData="M324,989 C386,943 442,877 475,804 C494,761 486,728 468,694 C449,662 458,630 478,613 C492,601 509,598 524,606 C533,571 555,545 581,547 C601,547 618,562 626,584 C645,565 667,559 686,572 C708,586 716,608 711,629 C735,623 754,636 762,657 C772,687 754,717 730,741 C697,771 672,801 654,843 C627,912 599,999 560,1060 L418,1060 C370,1060 335,1035 324,989 Z" />
+        <!-- Exactly four separate toe pads and one central palm pad. -->
         <path android:fillColor="#B7CBB4"
-            android:pathData="M510,646 C518,625 537,629 546,642 C555,657 550,682 536,687 C519,693 504,672 510,646 Z M564,606 C570,582 589,582 601,595 C613,609 609,635 595,644 C578,654 556,633 564,606 Z M638,623 C645,601 664,599 674,612 C687,629 679,653 665,662 C647,669 631,649 638,623 Z M548,706 C560,686 579,673 596,660 C610,650 624,658 633,674 C643,691 653,711 654,731 C654,745 644,753 630,751 L566,741 C549,739 540,722 548,706 Z" />
+            android:pathData="M489,645 C499,625 520,626 533,645 C547,666 539,689 525,695 C506,703 477,670 489,645 Z" />
+        <path android:fillColor="#B7CBB4"
+            android:pathData="M552,598 C561,574 582,571 596,589 C609,606 607,636 590,647 C570,660 542,632 552,598 Z" />
+        <path android:fillColor="#B7CBB4"
+            android:pathData="M633,616 C643,592 665,587 679,603 C693,622 684,648 668,661 C646,678 620,647 633,616 Z" />
+        <path android:fillColor="#B7CBB4"
+            android:pathData="M686,673 C700,650 722,647 733,663 C746,683 732,708 714,718 C693,729 671,703 686,673 Z" />
+        <path android:fillColor="#B7CBB4"
+            android:pathData="M540,712 C552,691 575,677 591,666 C607,655 621,667 632,684 C646,705 660,727 663,746 C666,763 654,770 638,766 L556,755 C536,752 527,732 540,712 Z" />
     </group>
 </vector>
