@@ -87,13 +87,13 @@ fun ControlScreen(
             )
         }
 
-        SectionLabel("试着这样说")
+        SectionLabel(if (settings.naturalLanguage) "试着这样说" else "可用口令")
         AppCard {
             Spacer(Modifier.height(8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 examplePhrases(settings).forEach { Chip(it) }
             }
-            Text("说「停止控制」可随时停止", Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 8.dp),
+            Text(phraseHint(settings), Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 8.dp),
                 fontSize = 12.sp, color = Palette.Muted, textAlign = TextAlign.Center)
         }
         Spacer(Modifier.height(24.dp))

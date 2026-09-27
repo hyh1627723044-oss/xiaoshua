@@ -71,8 +71,17 @@ fun heroState(s: ServiceSnapshot): HeroState = when {
     else -> HeroState("准备就绪", Tone.SUCCESS, "准备好听你说", "开始后，可切换到抖音")
 }
 
-fun examplePhrases(s: SettingsSnapshot): List<String> = when {
-    !s.cloud -> listOf("下一条", "点赞点赞", "查看评论", "收藏一下")
-    s.intent == IntentMode.JEV -> listOf("换一个吧", "帮我点个赞", "看看评论", "收藏这个")
-    else -> listOf("下一个", "点个赞", "查看评论", "收藏")
-}.map { if (s.prefix) "${IntentText.PREFIX}$it" else it }
+// Two ways of speaking: fixed phrases (local keywords or cloud strict matching) list every command,
+// while JEV shows natural examples.
+val SettingsSnapshot.naturalLanguage get() = cloud && intent == IntentMode.JEV
+
+fun examplePhrases(s: SettingsSnapshot): List<String> =
+    (if (s.naturalLanguage) listOf("换一个吧", "帮我点个赞", "看看评论", "收藏这个", "暂停一下")
+    else Command.entries.filter { it != Command.STOP }.map { it.phrase })
+        .map { if (s.prefix) "${IntentText.PREFIX}$it" else it }
+
+fun phraseHint(s: SettingsSnapshot): String = when {
+    s.naturalLanguage -> "用自然的说法即可；说「停止控制」可随时停止"
+    s.cloud -> "也可以说「下一个」「点个赞」「收藏」等；说「停止控制」可随时停止"
+    else -> "需要完整说出口令；说「停止控制」可随时停止"
+}
