@@ -28,7 +28,7 @@ SDK 使用 sherpa-onnx 1.13.8，模型使用官方中文 WenetSpeech 3.3M mobile
 
 在主界面把“语音识别”切到“字节云 ASR”，首次切换时会弹窗说明音频的去向。然后在“字节 ASR 设置”里填写凭证。
 
-- **火山引擎 ASR**：使用录音文件识别极速版，默认端点为 `https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash`，Resource ID 为 `volc.bigasr.auc_turbo`，需要先在控制台开通。
+- **火山引擎 ASR**：使用录音文件识别极速版，默认端点为 `https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash`，Resource ID 默认为 `volc.seedasr.auc`（豆包录音文件识别模型 2.0，已实测可用于极速版端点）；如果你开通的是 1.0 极速版，改成 `volc.bigasr.auc_turbo`。填错时会提示“资源未开通（45000030）”。
   - 支持两种凭证：新版控制台的 API Key，或旧版控制台的 AppID + Access Token。
   - “试录并测试”会录 3 秒并上传，用来确认凭证和端点可用。
 - **行为判断**：
@@ -56,7 +56,7 @@ SDK 使用 sherpa-onnx 1.13.8，模型使用官方中文 WenetSpeech 3.3M mobile
 - 关键词识别准确率、视频外放干扰、耗电、后台录音及真实端到端延迟仍需目标手机测试。
 - Android/手机厂商可能要求在应用详情允许“受限制的设置”后才能启用侧载应用的无障碍服务。
 - 云端模式：VAD 无法区分你的声音和视频里的人声，外放时可能上传视频对白并误判。
-- 云端模式：最新的火山文档没有写明极速版支持 `audio.data`（旧版文档写明支持），需要用“试录并测试”在真机上确认。
+- 云端模式：已于 2026-09-28 实测极速版端点接受 base64 `audio.data`，配合 `volc.seedasr.auc` 正常返回。
 
 ## 构建
 

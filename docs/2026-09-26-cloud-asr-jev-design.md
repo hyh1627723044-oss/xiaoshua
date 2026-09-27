@@ -130,7 +130,7 @@ AudioCapture ─ PCM ──────┤                                      
 - 鉴权支持两种方式：
   - 新版控制台：`X-Api-Key`。
   - 旧版控制台：`X-Api-App-Key` 加 `X-Api-Access-Key`。
-- 另外发送 `X-Api-Resource-Id`（默认 `volc.bigasr.auc_turbo`，可配置）、`X-Api-Request-Id`（UUID）和 `X-Api-Sequence: -1`。
+- 另外发送 `X-Api-Resource-Id`（默认 `volc.seedasr.auc`，即模型 2.0；2026-09-28 实测在极速版端点上可用且接受 `audio.data`。1.0 极速版为 `volc.bigasr.auc_turbo`）、`X-Api-Request-Id`（UUID）和 `X-Api-Sequence: -1`。
 - 请求体：`{user:{uid}, audio:{data:<WAV 的 base64>, format:"wav"}, request:{model_name:"bigmodel", enable_punc, enable_itn}}`。
 - 状态从响应头 `X-Api-Status-Code` 读取：
   - `20000000` 表示成功，文本在 `result.text`。

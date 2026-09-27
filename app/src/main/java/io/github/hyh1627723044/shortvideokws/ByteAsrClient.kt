@@ -53,22 +53,29 @@ class ByteAsrClient(base: OkHttpClient = OkHttpClient(), connectMs: Long = 3_000
             }
             .post(body.toString().toRequestBody(JSON))
             .build()
-        return CloudCall(http.newCall(request))
+        val secrets = when (auth) {
+            is AsrAuth.ApiKey -> listOf(auth.key)
+            is AsrAuth.Legacy -> listOf(auth.accessToken, auth.appId)
+        }
+        return CloudCall(http.newCall(request), secrets)
     }
 
     // Blocking; run on a worker thread. CloudCall.cancel() from any thread aborts it.
     fun execute(call: CloudCall): AsrResult = try {
-        call.call.execute().use(::parse)
+        call.call.execute().use { parse(it, call.secrets) }
     } catch (e: InterruptedIOException) {
         AsrResult.Failure(if (call.cancelled) "已取消" else "请求超时")
     } catch (e: IOException) {
         AsrResult.Failure(if (call.cancelled) "已取消" else "网络错误")
     }
 
-    fun parse(response: Response): AsrResult {
+    fun parse(response: Response, secrets: List<String> = emptyList()): AsrResult {
         val status = response.header("X-Api-Status-Code")?.trim()?.toLongOrNull()
         if (status != null && status in NO_SPEECH) return AsrResult.NoSpeech
-        if (status != null && status != SUCCESS) return AsrResult.Failure(describe(status))
+        if (status != null && status != SUCCESS) {
+            val detail = serverMessage(response.header("X-Api-Message"), secrets)
+            return AsrResult.Failure(describe(status) + (detail?.let { "：$it" } ?: ""))
+        }
         if (!response.isSuccessful) return AsrResult.Failure(
             if (response.code == 401 || response.code == 403) "ASR 鉴权失败" else "ASR HTTP ${response.code}")
         if (status == null) return AsrResult.Failure("ASR 响应缺少状态码")
@@ -82,7 +89,15 @@ class ByteAsrClient(base: OkHttpClient = OkHttpClient(), connectMs: Long = 3_000
         }
     }
 
+    // Server reason text helps diagnose account setup; credentials are masked and length is capped.
+    private fun serverMessage(raw: String?, secrets: List<String>): String? {
+        var text = raw?.trim()?.takeIf { it.isNotEmpty() && it != "OK" } ?: return null
+        for (secret in secrets) if (secret.length >= 4) text = text.replace(secret, "***")
+        return text.filter { it >= ' ' }.take(120)
+    }
+
     private fun describe(status: Long) = when {
+        status == 45000030L -> "ASR 资源未开通，请检查 Resource ID（$status）"
         status == 45000001L -> "ASR 参数错误（$status）"
         status == 45000151L -> "ASR 音频格式错误（$status）"
         status == 55000031L -> "ASR 服务繁忙（$status）"

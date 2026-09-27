@@ -33,7 +33,7 @@ class ByteAsrClientTest {
         assertEquals("/relay/flash?x=1", request.path)   // custom URL is used as-is
         assertEquals(key, request.getHeader("X-Api-Key"))
         assertNull(request.getHeader("X-Api-App-Key"))
-        assertEquals("volc.bigasr.auc_turbo", request.getHeader("X-Api-Resource-Id"))
+        assertEquals("volc.seedasr.auc", request.getHeader("X-Api-Resource-Id"))
         assertEquals("-1", request.getHeader("X-Api-Sequence"))
         assertTrue(request.getHeader("X-Api-Request-Id")!!.matches(Regex("[0-9a-f-]{36}")))
         val body = JSONObject(request.body.readUtf8())
@@ -63,7 +63,7 @@ class ByteAsrClientTest {
         server.enqueue(MockResponse().setHeader("X-Api-Status-Code", "20000000").setBody("not json"))
         server.enqueue(MockResponse().setBody("{}"))
         val results = (1..5).map { recognize() }
-        assertEquals(AsrResult.Failure("ASR 音频格式错误（45000151）"), results[0])
+        assertEquals(AsrResult.Failure("ASR 音频格式错误（45000151）：bad format for key ***"), results[0])
         assertEquals(AsrResult.Failure("ASR 鉴权失败"), results[1])
         assertEquals(AsrResult.Failure("ASR 服务繁忙（55000031）"), results[2])
         assertEquals(AsrResult.Failure("ASR 响应无法解析"), results[3])

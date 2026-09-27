@@ -149,7 +149,7 @@ fun AsrScreen(locked: Boolean, onBack: () -> Unit) {
         AppCard {
             LabeledField("服务 URL", url, { url = it }, enabled = !locked,
                 supporting = "目标域名：${Endpoints.parse(url)?.host ?: "地址无效"}，可替换为兼容中转站")
-            LabeledField("Resource ID", resource, { resource = it }, enabled = !locked, supporting = "需要在火山控制台开通")
+            LabeledField("Resource ID", resource, { resource = it }, enabled = !locked, supporting = "默认 volc.seedasr.auc（模型 2.0）；开通的是 1.0 极速版则填 volc.bigasr.auc_turbo")
         }
         SectionLabel("凭证")
         Segmented(listOf("新版 API Key", "旧版 AppID + Token"), if (legacy) 1 else 0, !locked) { legacy = it == 1 }

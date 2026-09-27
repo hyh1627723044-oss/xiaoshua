@@ -1,7 +1,19 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <path android:strokeColor="#F3F4E6" android:strokeWidth="6" android:strokeLineCap="round"
-        android:pathData="M31,49 L31,59 M43,38 L43,70 M55,45 L55,63" />
-    <path android:strokeColor="#C8E983" android:strokeWidth="6" android:strokeLineCap="round"
-        android:strokeLineJoin="round" android:pathData="M73,69 L73,38 M65,46 L73,38 L81,46" />
+    <!-- Keep the illustrated cards and paw inside the adaptive icon safe area. -->
+    <group android:scaleX="0.073" android:scaleY="0.073"
+        android:translateX="6.6" android:translateY="8.1">
+        <!-- Rear video card. -->
+        <path android:fillColor="#193F34"
+            android:pathData="M515,339 L516,309 C519,265 546,234 589,239 L877,271 C920,276 946,304 942,348 L927,711 C925,756 893,785 852,783 L857,474 C859,415 829,379 773,373 Z" />
+        <!-- Front video card. -->
+        <path android:fillColor="#193F34"
+            android:pathData="M449,356 L750,389 C806,395 837,425 835,480 L829,932 C829,986 800,1018 746,1018 L440,1018 C388,1018 357,987 357,934 L357,448 C357,393 392,350 449,356 Z" />
+        <!-- Ivory foreleg and rounded paw, clipped naturally by the card edge. -->
+        <path android:fillColor="#F7F6F0"
+            android:pathData="M359,951 C417,902 457,846 483,782 C500,741 500,716 487,689 C474,665 476,642 491,624 C503,609 518,600 533,606 C540,575 558,554 582,554 C603,553 619,566 630,586 C648,570 669,566 688,578 C708,590 717,614 708,639 C727,648 734,665 730,683 C725,708 704,727 687,744 C659,773 645,811 630,853 C613,905 593,963 572,1018 L440,1018 C400,1018 370,995 359,951 Z" />
+        <!-- Three toe pads and a simple central pad remain clear at launcher size. -->
+        <path android:fillColor="#B7CBB4"
+            android:pathData="M510,646 C518,625 537,629 546,642 C555,657 550,682 536,687 C519,693 504,672 510,646 Z M564,606 C570,582 589,582 601,595 C613,609 609,635 595,644 C578,654 556,633 564,606 Z M638,623 C645,601 664,599 674,612 C687,629 679,653 665,662 C647,669 631,649 638,623 Z M548,706 C560,686 579,673 596,660 C610,650 624,658 633,674 C643,691 653,711 654,731 C654,745 644,753 630,751 L566,741 C549,739 540,722 548,706 Z" />
+    </group>
 </vector>

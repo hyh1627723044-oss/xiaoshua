@@ -6,7 +6,10 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 object CloudDefaults {
     const val ASR_URL = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash"
-    const val ASR_RESOURCE_ID = "volc.bigasr.auc_turbo"
+    // 豆包录音文件识别模型 2.0; verified to work on the flash endpoint with inline audio.
+    const val ASR_RESOURCE_ID = "volc.seedasr.auc"
+    // Default before 0.3.1. Accounts with only the 2.0 model get 45000030 for it.
+    const val OLD_ASR_RESOURCE_ID = "volc.bigasr.auc_turbo"
     const val JEV_URL = "https://jevtypesafeai.com/api/v1/decide"
     const val JEV_MODEL = "jev-1.13.0"
 }
@@ -23,7 +26,8 @@ object Endpoints {
 }
 
 // OkHttp's call timeout also marks a call canceled, so user cancellation is tracked separately.
-class CloudCall(val call: Call) {
+// secrets are redacted from any server-provided text shown to the user.
+class CloudCall(val call: Call, val secrets: List<String> = emptyList()) {
     @Volatile var cancelled = false
         private set
     fun cancel() { cancelled = true; call.cancel() }
