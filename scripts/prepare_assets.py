@@ -1,4 +1,4 @@
-"""Download pinned official KWS binaries; no Baidu credentials or runtime network needed."""
+"""Download pinned official KWS binaries and verify the committed VAD model; no credentials needed."""
 from pathlib import Path
 import hashlib
 import json
@@ -26,7 +26,10 @@ def main():
     download(f'https://github.com/k2-fsa/sherpa-onnx/releases/download/v{VERSION}/{aar.name}', aar)
     download(f'https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/{archive.name}', archive)
     lock = json.loads((ROOT / 'assets.lock.json').read_text(encoding='utf-8'))
-    for key, path in [('sdk', aar), ('model', archive)]:
+    # The small Silero VAD model is committed; download it only if missing.
+    vad = ROOT / lock['vad']['file']
+    download(lock['vad']['source'], vad)
+    for key, path in [('sdk', aar), ('model', archive), ('vad', vad)]:
         if sha(path) != lock[key]['sha256']:
             raise RuntimeError(f'Checksum mismatch: {path}; remove the incomplete download and retry')
     target = ROOT / 'app/src/main/assets/kws'
@@ -42,14 +45,16 @@ def main():
             with tar.extractfile(f'{MODEL}/{source}') as src, (target / dest).open('wb') as dst:
                 shutil.copyfileobj(src, dst)
     tokens = {line.split()[0] for line in (target / 'tokens.txt').read_text(encoding='utf-8').splitlines()}
-    for name in ['keywords.txt', 'keywords-prefixed.txt']:
+    for name, count in [('keywords.txt', 8), ('keywords-prefixed.txt', 8), ('keywords-stop.txt', 1)]:
         lines = (target.parent / name).read_text(encoding='utf-8').splitlines()
-        assert len(lines) == 8
+        assert len(lines) == count, name
         for line in lines:
             parts = line.split()
             assert parts[-1].startswith('@'), line
             assert all(token in tokens for token in parts[:-1]), f'Unknown phoneme: {line}'
-    print('Verified SDK, model checksums and both keyword vocabularies.')
+    stop = (target.parent / 'keywords-stop.txt').read_text(encoding='utf-8').splitlines()
+    assert stop[0].endswith('@STOP'), 'keywords-stop.txt must contain only the STOP keyword'
+    print('Verified SDK, KWS model and VAD checksums, and all three keyword vocabularies.')
 
 if __name__ == '__main__':
     main()
