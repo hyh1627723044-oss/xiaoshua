@@ -11,6 +11,9 @@ data class ServiceSnapshot(
     val lastAction: String,
     val lastHeard: String,
     val accessibility: Boolean,
+    val calibrating: Boolean,
+    val calibration: String,
+    val calibrationOk: Boolean,
 ) {
     val busy get() = listening || starting
     val failed get() = !busy && FAILURES.any { status.startsWith(it) }
@@ -18,7 +21,8 @@ data class ServiceSnapshot(
     companion object {
         private val FAILURES = listOf("无法", "监听失败", "本机无法", "需要")
         fun read() = ServiceSnapshot(AppState.listening, AppState.starting, AppState.status,
-            AppState.lastAction, AppState.lastHeard, GestureService.instance != null)
+            AppState.lastAction, AppState.lastHeard, GestureService.instance != null,
+            AppState.calibrating, AppState.calibration, AppState.calibrationOk)
     }
 }
 
@@ -27,7 +31,10 @@ data class SettingsSnapshot(
     val recognition: RecognitionMode,
     val intent: IntentMode,
     val prefix: Boolean,
-    val commentY: Int,
+    val comment: ButtonSpot,
+    val favorite: ButtonSpot,
+    val calibrated: Boolean,
+    val needsRecalibration: Boolean,
     val asrConfigured: Boolean,
     val jevConfigured: Boolean,
 ) {
@@ -38,8 +45,8 @@ data class SettingsSnapshot(
             val secrets = SecretStore(c)
             return SettingsSnapshot(
                 CloudSettings.recognitionMode(c), CloudSettings.intentMode(c), AppState.requirePrefix(c),
-                AppState.prefs(c).getInt("comment_y", 65), CloudSettings.asrAuth(c, secrets) != null,
-                secrets.has(SecretName.JEV_API_KEY),
+                ButtonLayout.comment(c), ButtonLayout.favorite(c), ButtonLayout.calibrated(c), ButtonLayout.needsRecalibration(c),
+                CloudSettings.asrAuth(c, secrets) != null, secrets.has(SecretName.JEV_API_KEY),
             )
         }
     }
@@ -65,7 +72,7 @@ fun heroState(s: ServiceSnapshot): HeroState = when {
 }
 
 fun examplePhrases(s: SettingsSnapshot): List<String> = when {
-    !s.cloud -> listOf("下一条", "点赞点赞", "查看评论")
-    s.intent == IntentMode.JEV -> listOf("换一个吧", "帮我点个赞", "看看评论")
-    else -> listOf("下一个", "点个赞", "查看评论")
+    !s.cloud -> listOf("下一条", "点赞点赞", "查看评论", "收藏一下")
+    s.intent == IntentMode.JEV -> listOf("换一个吧", "帮我点个赞", "看看评论", "收藏这个")
+    else -> listOf("下一个", "点个赞", "查看评论", "收藏")
 }.map { if (s.prefix) "${IntentText.PREFIX}$it" else it }

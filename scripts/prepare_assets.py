@@ -45,7 +45,7 @@ def main():
             with tar.extractfile(f'{MODEL}/{source}') as src, (target / dest).open('wb') as dst:
                 shutil.copyfileobj(src, dst)
     tokens = {line.split()[0] for line in (target / 'tokens.txt').read_text(encoding='utf-8').splitlines()}
-    for name, count in [('keywords.txt', 8), ('keywords-prefixed.txt', 8), ('keywords-stop.txt', 1)]:
+    for name, count in [('keywords.txt', 9), ('keywords-prefixed.txt', 9), ('keywords-stop.txt', 1)]:
         lines = (target.parent / name).read_text(encoding='utf-8').splitlines()
         assert len(lines) == count, name
         for line in lines:

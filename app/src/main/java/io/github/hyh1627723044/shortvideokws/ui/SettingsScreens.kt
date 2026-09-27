@@ -12,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.GpsFixed
 import androidx.compose.material.icons.outlined.NetworkCheck
@@ -47,7 +49,6 @@ fun SettingsHome(
     onRecognition: (RecognitionMode) -> Unit,
     onIntent: (IntentMode) -> Unit,
     onOpen: (Page) -> Unit,
-    onCommentPosition: () -> Unit,
 ) = ScreenColumn {
     val idle = !service.busy
     ScreenHeader("设置", "按你的习惯来")
@@ -75,7 +76,8 @@ fun SettingsHome(
 
     SectionLabel("控制与调节")
     AppCard {
-        SettingRow(Icons.Outlined.GpsFixed, "评论按钮位置", value = "${settings.commentY}%", enabled = idle, onClick = onCommentPosition)
+        SettingRow(Icons.Outlined.GpsFixed, "按钮校准", subtitle = "评论与收藏按钮的位置",
+            badge = { CalibrationPill(settings) }, onClick = { onOpen(Page.CALIBRATION) })
         RowDivider()
         SettingRow(Icons.Outlined.Tune, "高级设置", subtitle = "语音检测与判断阈值", onClick = { onOpen(Page.ADVANCED) })
         RowDivider()
@@ -326,7 +328,7 @@ fun AdvancedScreen(locked: Boolean, onBack: () -> Unit) {
             em == null || em !in VadSettings.END_MS_RANGE -> "结束静音需在 96～2000 ms"
             pr == null || pr !in VadSettings.PRE_ROLL_MS_RANGE -> "前置缓存需在 0～1000 ms"
             a == null || a !in JevThresholds.RANGE -> "接受阈值需在 0.50～0.99"
-            l == null || l !in JevThresholds.RANGE -> "点赞阈值需在 0.50～0.99"
+            l == null || l !in JevThresholds.RANGE -> "点赞/收藏阈值需在 0.50～0.99"
             else -> null
         }
         if (error != null) { notice = Notice(error, Tone.DANGER); return }
@@ -366,8 +368,8 @@ fun AdvancedScreen(locked: Boolean, onBack: () -> Unit) {
         SectionLabel("智能判断")
         AppCard {
             ValueRow("接受阈值", accept, { accept = it }, enabled = !locked)
-            ValueRow("点赞阈值", like, { like = it }, enabled = !locked)
-            Text("JEV 置信度低于阈值时不执行；点赞更严格", fontSize = 12.sp, color = Palette.Muted, modifier = Modifier.padding(top = 4.dp, bottom = 10.dp))
+            ValueRow("点赞/收藏阈值", like, { like = it }, enabled = !locked)
+            Text("JEV 置信度低于阈值时不执行；点赞和收藏更严格", fontSize = 12.sp, color = Palette.Muted, modifier = Modifier.padding(top = 4.dp, bottom = 10.dp))
         }
         notice?.let { Spacer(Modifier.height(12.dp)); NoticeBanner(it) }
         Spacer(Modifier.height(16.dp))
@@ -383,9 +385,10 @@ fun HelpScreen(onBack: () -> Unit) = ScreenColumn {
     val sections = listOf(
         "开始使用" to "1. 在控制页点“无障碍服务未开启”，在系统设置中启用“小刷手势控制”。\n2. 点“开始监听”，授予麦克风和通知权限。\n3. 切到抖音普通竖屏视频页，直接说口令。",
         "停止" to "说“停止控制”、点通知上的停止，或回到小刷点“停止监听”。锁屏会自动停止，解锁后不会自动恢复。",
-        "本地关键词" to "完全离线，只识别固定口令：下一条、上一条、播放、暂停、点赞点赞、查看评论、关闭评论。不理解否定句。",
+        "本地关键词" to "完全离线，只识别固定口令：下一条、上一条、播放、暂停、点赞点赞、查看评论、关闭评论、收藏一下。不理解否定句。",
         "字节云 ASR" to "本地 VAD 切出一句话后上传识别，静音时不上传。可选严格口令（整句匹配）或 JEV 智能判断（理解自然表达）。云端模式下“停止控制”仍由本地离线识别。",
-        "注意" to "播放和暂停都是点一下屏幕中央；关闭评论执行系统返回，只在评论打开时说。视频外放可能误触，建议戴耳机或开启“小刷 + 口令”。",
+        "按钮校准" to "评论和收藏按固定位置点击。首次使用在“设置 → 按钮校准”点一次自动校准，小刷会打开抖音找到这两个按钮并记住位置；抖音更新后重新校准即可。",
+        "注意" to "播放和暂停都是点一下屏幕中央；关闭评论执行系统返回，只在评论打开时说。收藏是点收藏按钮，已收藏的视频再说一次会取消收藏。视频外放可能误触，建议戴耳机或开启“小刷 + 口令”。",
     )
     sections.forEach { (title, body) ->
         SectionLabel(title)
@@ -395,16 +398,84 @@ fun HelpScreen(onBack: () -> Unit) = ScreenColumn {
 }
 
 @Composable
-fun CommentPositionDialog(initial: Int, onSave: (Int) -> Unit, onDismiss: () -> Unit) {
+fun CalibrationPill(settings: SettingsSnapshot) = when {
+    settings.needsRecalibration -> Pill("抖音已更新", Tone.WARNING)
+    settings.calibrated -> Pill("已校准", Tone.SUCCESS)
+    else -> Pill("未校准", Tone.NEUTRAL)
+}
+
+@Composable
+fun CalibrationScreen(service: ServiceSnapshot, settings: SettingsSnapshot, onBack: () -> Unit, onChanged: () -> Unit) {
+    val context = LocalContext.current
+    var notice by remember { mutableStateOf<Notice?>(null) }
+    var editing by remember { mutableStateOf<Command?>(null) }
+    // Pick up the saved positions when a calibration run finishes.
+    LaunchedEffect(service.calibrating) { if (!service.calibrating) onChanged() }
+    val locked = service.busy
+
+    ScreenColumn {
+        ScreenHeader("按钮校准", "自动定位评论和收藏按钮", onBack = onBack)
+        if (locked) { Spacer(Modifier.height(12.dp)); NoticeBanner(LOCKED) }
+        else if (settings.needsRecalibration) { Spacer(Modifier.height(12.dp)); NoticeBanner(Notice("抖音已更新，按钮位置可能变化，建议重新校准", Tone.WARNING)) }
+        SectionLabel("自动校准")
+        AppCard {
+            Text("1. 点下方按钮，小刷会打开抖音\n2. 停留在普通竖屏视频页，不要滑动\n3. 几秒后自动返回，显示找到的位置",
+                Modifier.padding(vertical = 10.dp), fontSize = 14.sp, color = Palette.Text, lineHeight = 22.sp)
+            Text("只在校准时读取抖音按钮的描述，找到后记住位置；之后执行口令直接点击，不增加延迟，也不保存或上传界面内容。",
+                Modifier.padding(bottom = 10.dp), fontSize = 12.sp, color = Palette.Muted, lineHeight = 18.sp)
+        }
+        Spacer(Modifier.height(16.dp))
+        PrimaryButton(if (service.calibrating) "正在校准…" else "开始自动校准", Modifier.fillMaxWidth(), Icons.Outlined.GpsFixed,
+            enabled = !locked && !service.calibrating && service.accessibility) {
+            val gestures = GestureService.instance
+            notice = if (gestures == null) Notice("请先开启小刷无障碍服务", Tone.DANGER)
+                else gestures.startCalibration()?.let { Notice(it, Tone.DANGER) }
+        }
+        if (!service.accessibility) Hint("需要先开启小刷无障碍服务")
+        val result = notice ?: service.calibration.takeIf { it.isNotEmpty() }?.let {
+            Notice(it, when { service.calibrating -> Tone.INFO; service.calibrationOk -> Tone.SUCCESS; else -> Tone.WARNING })
+        }
+        result?.let { Spacer(Modifier.height(12.dp)); NoticeBanner(it) }
+
+        SectionLabel("当前位置", trailing = "点击手动微调高度")
+        AppCard {
+            SettingRow(Icons.Outlined.ChatBubbleOutline, "评论按钮", value = settings.comment.toString(), enabled = !locked,
+                onClick = { editing = Command.COMMENTS })
+            RowDivider()
+            SettingRow(Icons.Outlined.BookmarkBorder, "收藏按钮", value = settings.favorite.toString(), enabled = !locked,
+                onClick = { editing = Command.FAVORITE })
+        }
+        Hint("位置为屏幕宽度、高度的百分比。说“查看评论”点到收藏时，把评论按钮调小一些。")
+        SecureFooter("校准结果只保存在本机")
+    }
+
+    editing?.let { target ->
+        val favorite = target == Command.FAVORITE
+        PositionDialog(
+            title = if (favorite) "收藏按钮高度" else "评论按钮高度",
+            description = "说“${target.phrase}”时点击屏幕右侧 ${(if (favorite) settings.favorite else settings.comment).xPercent}% 宽度处。调整高度，使其对准${if (favorite) "收藏" else "评论"}图标。",
+            initial = (if (favorite) settings.favorite else settings.comment).yPercent,
+            onSave = {
+                if (favorite) ButtonLayout.setFavoriteHeight(context, it) else ButtonLayout.setCommentHeight(context, it)
+                editing = null
+                onChanged()
+            },
+            onDismiss = { editing = null },
+        )
+    }
+}
+
+@Composable
+fun PositionDialog(title: String, description: String, initial: Int, onSave: (Int) -> Unit, onDismiss: () -> Unit) {
     var value by remember { mutableFloatStateOf(initial.toFloat()) }
     AppDialog(
-        title = "评论按钮位置",
+        title = title,
         confirm = "保存",
         onConfirm = { onSave(value.roundToInt()) },
         onDismiss = onDismiss,
         body = {
             Column {
-                Text("说“查看评论”时点击屏幕右侧 92% 宽度处。调整高度，使其对准评论图标。", fontSize = 14.sp, color = Palette.Muted)
+                Text(description, fontSize = 14.sp, color = Palette.Muted)
                 Spacer(Modifier.height(16.dp))
                 Text("${value.roundToInt()}%", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Primary)
                 Slider(value, { value = it }, valueRange = 35f..85f, steps = 49,

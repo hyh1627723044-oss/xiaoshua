@@ -24,6 +24,7 @@ class ExactIntentResolver(private val requirePrefix: Boolean) {
             "点赞" to Command.LIKE, "点个赞" to Command.LIKE, "点赞点赞" to Command.LIKE,
             "查看评论" to Command.COMMENTS, "打开评论" to Command.COMMENTS, "看评论" to Command.COMMENTS,
             "关闭评论" to Command.CLOSE_COMMENTS, "关掉评论" to Command.CLOSE_COMMENTS,
+            "收藏" to Command.FAVORITE, "收藏一下" to Command.FAVORITE, "加个收藏" to Command.FAVORITE,
             "停止控制" to Command.STOP,
         )
     }

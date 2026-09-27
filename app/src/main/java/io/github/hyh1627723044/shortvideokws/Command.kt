@@ -2,7 +2,7 @@ package io.github.hyh1627723044.shortvideokws
 
 enum class Command(val phrase: String) {
     NEXT("下一条"), PREVIOUS("上一条"), PLAY("播放"), PAUSE("暂停"),
-    LIKE("点赞点赞"), COMMENTS("查看评论"), CLOSE_COMMENTS("关闭评论"), STOP("停止控制");
+    LIKE("点赞点赞"), COMMENTS("查看评论"), CLOSE_COMMENTS("关闭评论"), FAVORITE("收藏一下"), STOP("停止控制");
 
     companion object {
         fun fromKeyword(keyword: String): Command? = entries.firstOrNull { it.name == keyword }

@@ -7,6 +7,10 @@
     <!-- Used only by the optional cloud ASR / JEV modes; local keyword mode never opens a connection. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Button calibration opens Douyin and records its version to detect layout-changing updates. -->
+    <queries>
+        <package android:name="com.ss.android.ugc.aweme" />
+    </queries>
     <application android:label="小刷 · 语音遥控" android:icon="@mipmap/ic_launcher" android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:allowBackup="false" android:supportsRtl="true">
         <activity android:name=".MainActivity" android:exported="true">
