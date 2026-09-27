@@ -41,6 +41,7 @@ object CloudSettings {
     private const val RECOGNITION = "recognition_mode"
     private const val INTENT = "intent_mode"
     private const val NOTICE = "cloud_notice_accepted"
+    private const val RESOURCE_MIGRATED = "asr_resource_migrated_v1"
 
     fun prefs(context: Context): SharedPreferences = context.getSharedPreferences("cloud", Context.MODE_PRIVATE)
 
@@ -59,7 +60,16 @@ object CloudSettings {
     fun jevUrl(c: Context): String = prefs(c).getString(JEV_URL, null)?.takeIf { Endpoints.parse(it) != null } ?: CloudDefaults.JEV_URL
     fun asrAuthMode(c: Context) = prefs(c).enum(ASR_AUTH, AsrAuthMode.API_KEY)
     fun asrAppId(c: Context) = prefs(c).getString(ASR_APP_ID, "").orEmpty()
-    fun resourceId(c: Context) = prefs(c).getString(ASR_RESOURCE, null)?.takeIf { it.isNotBlank() } ?: CloudDefaults.ASR_RESOURCE_ID
+    fun resourceId(c: Context): String {
+        val p = prefs(c)
+        // One-time 0.3.1 migration: saving in earlier versions stored the old default verbatim.
+        if (!p.getBoolean(RESOURCE_MIGRATED, false)) {
+            val edit = p.edit().putBoolean(RESOURCE_MIGRATED, true)
+            if (p.getString(ASR_RESOURCE, null) == CloudDefaults.OLD_ASR_RESOURCE_ID) edit.remove(ASR_RESOURCE)
+            edit.apply()
+        }
+        return p.getString(ASR_RESOURCE, null)?.takeIf { it.isNotBlank() } ?: CloudDefaults.ASR_RESOURCE_ID
+    }
     fun jevModel(c: Context) = prefs(c).getString(JEV_MODEL, null)?.takeIf { it.isNotBlank() } ?: CloudDefaults.JEV_MODEL
 
     fun saveAsr(c: Context, url: String, mode: AsrAuthMode, appId: String, resourceId: String) = prefs(c).edit()
