@@ -9,3 +9,6 @@ app/src/main/assets/kws/*.onnx
 app/src/main/assets/kws/tokens.txt
 downloads/
 *.apk
+
+# Release APKs and checksums are published on GitHub Releases, not committed.
+dist/
