@@ -5,20 +5,23 @@ on:
   pull_request:
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moves to a new image in late 2026.
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      # The hosted image already ships the Android SDK; install only the exact pinned packages.
+      - name: Android SDK packages
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
       - uses: gradle/actions/setup-gradle@v4
       - run: python3 scripts/prepare_assets.py
       - run: bash gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: short-video-kws-debug-apk
+          name: xiaoshua-debug-apk
           path: app/build/outputs/apk/debug/*.apk
